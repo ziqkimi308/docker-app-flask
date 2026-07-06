@@ -60,32 +60,9 @@ docker compose down -v   # -v removes volumes (clears Redis data)
 
 ## Problems Faced & Fixes
 
-**Issue 1: Alpine vs. Debian Slim Migration (The Great Base Image Swap)**
-<br/>The original guide used `python:3.11-alpine`, but Alpine uses `musl` (a lightweight C library) and the `apk` package manager. This made installing tools like `dumb-init` and managing compilers more complex. I switched to `python:3.11-slim` (Debian-based) for better compatibility.
 
-**Investigation & Fix:**
-<br/>Switching base images required changing the package manager syntax across both stages:
-- `apk add --no-cache` → `apt-get update && apt-get install -y --no-install-recommends ... && rm -rf /var/lib/apt/lists/*`
-- `addgroup -S appgroup && adduser -S appuser -G appgroup -u 1001` (Alpine) → `useradd -m -u 1001 appuser` (Debian)
-- `&& rm -rf /var/lib/apt/lists/*` was added after each `apt-get` install—this is the Debian equivalent of Alpine's `--no-cache`, clearing the package index cache to keep the image small.
-
-**Root cause:**
-<br/>Mixing Alpine (`apk`) and Debian (`apt-get`) package managers across stages, or switching base images without updating the accompanying system commands, breaks the build. The builder and final stages must stay consistent.
-
-**Issue 2: The Mystery of the `gcc` Compiler ("Do we actually need this?")**
-<br/>The builder stage installed `gcc` (a C compiler). Looking at `requirements.txt` (`flask`, `redis`, `pytest`), these are **pure Python packages**—they contain no C code and require no compilation.
-
-**Root cause & Decision:**
-<br/>`gcc` sits completely unused during the build for this specific project. However, I kept it as a **defensive default**—a "just in case" measure for future dependencies (e.g., `psycopg2`, `cryptography`, `numpy`) that *do* require compiling C-extensions. It costs a bit of image size but prevents a broken build later if the `requirements.txt` changes.
-
-**Fix:**
-<br/>Documented this in the Dockerfile with a comment:
-```dockerfile
-# Defensive default: not required by current pure-Python deps,
-# but avoids future build breaks if a compiled dependency gets added.
-```
-
-**Issue 3: Docker Hub Pull Fails with "Port is already allocated"**
+**Issue: 
+<br/>Docker Hub Pull Fails with "Port is already allocated"**
 <br/>When testing the pulled image from Docker Hub with `docker run -d --name flask-from-hub -p 5000:5000 ziqkimi/docker-app-flask:latest`, I got a `Bind for 0.0.0.0:5000 failed: port is already allocated` error.
 
 **Investigation:**
@@ -108,43 +85,53 @@ Visited `http://localhost:5001`—the image ran successfully (though Redis showe
 
 ![Docker and Compose Version](./screenshots/docker_and_compose_version.png)
 
-### 2. Build Success & Image Verification
+### 2. Successfully Build Docker Image using DockerFile
 
 ![Build Success & Verified](./screenshots/docker_built_success_and_verified.png)
 
-### 3. Docker Compose Up (Stack Running)
+### 3. Run Docker Image via Terminal & Image Verification But Redis Expected To Failed
 
-![Compose Up Success](./screenshots/docker_compose_up_build_success.png)
+![Run success](./screenshots/docker_run_success_and_verified.png)
 
-### 4. Inspecting the Custom Network
+![Website Live but Redis Expected to Failed](./screenshots/website_success_but_redis_unavailable_expected.png)
 
-![Network Inspect](./screenshots/docker_compose_network_and_inspect.png)
+### 4. Stop and Delete Container
 
-### 5. Exec into Running Container (Service Discovery Check)
+![Stop and Delete](./screenshots/docker_stop_delete.png)
 
-![Compose Exec](./screenshots/docker_compose_exec.png)
+### 5. Successfully Run docker-compose YAML file & Redis Is Now Working
 
-### 6. Live Logs (Flask & Redis)
+![Build Success & Verified](./screenshots/docker_compose_up_build_success.png)
+
+![Website Running With Working Redis](./screenshots/website_success_with_redis.png)
+
+### 6. Logs & Live Logs (Flask & Redis)
 
 ![Compose Logs Live](./screenshots/docker_compose_logs_live.png)
 
-### 7. Website Working with Redis Counter
+![Compose logs](./screenshots/docker_compose_logs.png)
 
-![Website With Redis](./screenshots/website_success_with_redis.png)
+### 7. Inspecting the Custom Network
 
-### 8. Tagging & Pushing to Docker Hub
+![Network Inspect](./screenshots/docker_compose_network_and_inspect.png)
+
+### 8. Exec into Running Container (Service Discovery Check)
+
+![Compose Exec](./screenshots/docker_compose_exec.png)
+
+### 9. Tagging & Pushing to Docker Hub
 
 ![Docker Tags Push](./screenshots/docker_tags_latest_and_v1.png)
 
-### 9. Image Verified on Docker Hub
+### 10. Image Verified on Docker Hub
 
 ![Docker Hub Uploaded](./screenshots/docker_hub_image_successfully_uploaded_verified.png)
 
-### 10. Pull and Run from Docker Hub
+### 11. Pull and Run from Docker Hub
 
 ![Running From Hub](./screenshots/running_docker_image_from_hub_successfully.png)
 
-### 11. Cleanup (Down, Prune, RMI)
+### 12. Cleanup (Down, Prune, RMI)
 
 ![Cleanup](./screenshots/cleanup.png)
 
