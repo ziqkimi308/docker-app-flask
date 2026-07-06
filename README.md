@@ -109,7 +109,7 @@ Visited `http://localhost:5001`—the image ran successfully (though Redis showe
 
 ![Compose Logs Live](./screenshots/docker_compose_logs_live.png)
 
-![Compose logs](./screenshots/docker_compose_logs.png)
+![Compose logs](https://raw.githubusercontent.com/ziqkimi308/docker-app-flask/refs/heads/main/screenshots/docker_compose_logs.png)
 
 ### 7. Inspecting the Custom Network
 
@@ -129,11 +129,11 @@ Visited `http://localhost:5001`—the image ran successfully (though Redis showe
 
 ### 11. Pull and Run from Docker Hub
 
-![Running From Hub](./screenshots/running_docker_image_from_hub_successfully.png)
+![Running From Hub](./screenshots/docker_stop_delete.png)
 
 ### 12. Cleanup (Down, Prune, RMI)
 
-![Cleanup](./screenshots/cleanup.png)
+![Cleanup](https://raw.githubusercontent.com/ziqkimi308/docker-app-flask/refs/heads/main/screenshots/cleanup.png)
 
 ## Notes
 
